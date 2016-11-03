@@ -8,15 +8,15 @@ pushd %~dp0
 ::Attempts to start py launcher without relying on PATH
 %SYSTEMROOT%\py.exe --version > NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO attempt
-%SYSTEMROOT%\py.exe -3.5 red.py
+%SYSTEMROOT%\python.exe -3.5 chronoxia.py
 timeout 3
 GOTO loopstart
 
 ::Attempts to start py launcher by relying on PATH
 :attempt
-py.exe --version > NUL 2>&1
+python.exe --version > NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO lastattempt
-py.exe -3.5 red.py
+py.exe -3.5 chronoxia.py
 timeout 3
 GOTO loopstart
 
@@ -24,7 +24,7 @@ GOTO loopstart
 :lastattempt
 python.exe --version > NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO message
-python.exe red.py
+python.exe -3.5 chronoxia.py
 timeout 3
 GOTO loopstart
 
