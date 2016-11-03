@@ -20,7 +20,7 @@ GOTO end
 
 ::As a last resort, attempts to start whatever Python there is
 :lastattempt
-python.exe --version > NUL 2>&1
+py.exe --version > NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO message
 py.exe -3.5 chronoxia.py
 PAUSE
