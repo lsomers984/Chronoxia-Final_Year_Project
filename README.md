@@ -15,9 +15,11 @@ The default set of modules includes and it's not limited to:
 * custom commands
 * and much much more
 
-Chronoxia is a Final Year Projected Designed by Wolfstorm and will be in continuous development!
+Chronoxia is a Final Year Projected Designed by lsomers984 and will be in continuous development!
 
 ### I don't know what you're waiting for, tell me how to install this already!
 
 Documents will be coming soon, so stay tuned :)
 
+
+~ Wolfie/Rain
