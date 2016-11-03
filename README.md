@@ -5,7 +5,7 @@
 Chronoxia is a fully Modular Bot that comes with a set of commands/modules that can be enabled/disabled to your liking,
 making it just the way you want it to be.
 
-You can turn Chronoxia into a Music Bot, Trivia Bot, Admin Bot and more!
+You can turn Chronoxia into a Music Bot, Trivia Bot, Admin Bot or any combination of those and many more!
 
 The default set of modules includes and it's not limited to:
 * admin commands
