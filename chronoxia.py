@@ -1,4 +1,4 @@
-#Imports Required for this Project
+# Imports Required for this Project
 
 import asyncio
 import os
@@ -18,7 +18,7 @@ except ImportError:
     print("Discord.py is not installed.\n"
           "Consult the guide for your operating system "
           "and do ALL the steps in order.\n"
-          "https://lsomers984.github.io/ChrSono-Docs/\n")
+          "https://lsomers984.github.io/Chrono-Docs/\n")
     sys.exit()
 
 from cogs.utils.settings import Settings
@@ -33,6 +33,7 @@ from cogs.utils.chat_formatting import inline
 #             https://github.com/Rapptz/RoboDanny/tree/async
 
 description = " Chronoxia - A Multifunctional Discord Bot by L. Somers"
+
 
 # Format Class: TBC
 class Format(commands.HelpFormatter):
@@ -49,11 +50,13 @@ class Format(commands.HelpFormatter):
             shortened = self.shorten(entry)
             self._paginator.add_line(shortened)
 
+
 format = Format(show_check_failure=False)
 
 bot = commands.Bot(command_prefix=["_"], format=format, description=description, pm_help=None)
 
 settings = Settings()
+
 
 #   Bot Event - On Ready do the following:
 #   1) Load Owner Module
@@ -66,7 +69,7 @@ async def on_ready():
     total_cogs = len(owner_cog._list_cogs())
     users = len(set(bot.get_all_members()))
     servers = len(bot.servers)
-    channels = len( [c for c in bot.get_all_channels()] )
+    channels = len([c for c in bot.get_all_channels()])
     if not hasattr(bot, "uptime"):
         bot.uptime = int(time.perf_counter())
     if settings.login_type == "token" and settings.owner == "ID_Here":
@@ -78,10 +81,9 @@ async def on_ready():
     print("Number of Servers: {}".format(servers))
     print("Number of Channels: {}".format(channels))
     print("Number of Users: {}".format(users))
-    print("\n{}/{} active modules with {} commands".format(len(bot.cogs), total_modules, len(bot.commands)))
-    prefix_label = "Prefixes:" \
-        if len(bot.command_prefix) > 1 else "Prefix:"
-        print("{} {}\n".format(prefix_label, " ".join(bot.command_prefix)))
+    print("\n{}/{} active modules with {} commands".format(len(bot.cogs), total_cogs, len(bot.commands)))
+    prefix_label = "Prefixes:" if len(bot.command_prefix) > 1 else "Prefix:"
+    print("{} {}\n".format(prefix_label, " ".join(bot.command_prefix)))
     if settings.login_type == "token":
         print('------')
         print("Use the following API URL to bring this bot to your server: ")
@@ -91,17 +93,20 @@ async def on_ready():
         print('------')
     await bot.get_cog('Owner').disable_commands()
 
+
 #   Bot Event: on_command
 @bot.event
 async def on_command(command, ctx):
     pass
+
 
 #   Bot Event: on_message
 async def on_message(message):
     if user_allowed(message):
         await bot.process_commands(message)
 
-#   Bot Event: On_Command_Error
+
+# Bot Event: On_Command_Error
 @bot.event
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
@@ -113,9 +118,10 @@ async def on_command_error(error, ctx):
         await bot.send_message(channel, "That command has been disabled by the owner :crying_cat_face: ")
     elif isinstance(error, commands.CommandInvokeError):
         logger.exception("Exception in command '{}'".format(ctx.command.qualified_name), exc_info=error.original)
-        oneliner = "Error in command '{}' - {}:{}".format(ctx.command.qualified_name, type(error.original).__name__, str(error.original))
+        oneliner = "Error in command '{}' - {}:{}".format(ctx.command.qualified_name, type(error.original).__name__,
+                                                          str(error.original))
         await ctx.bot.send_message(channel, inline(oneliner))
-    elif isinstance(error. commands.CommandNotFound):
+    elif isinstance(error.commands.CommandNotFound):
         pass
     elif isinstance(error, commands.CheckFailure):
         pass
@@ -124,14 +130,16 @@ async def on_command_error(error, ctx):
     else:
         logger.exception(type(error).__name__, exc_info=error)
 
-#   Async Definition: send_command_help
+
+# Async Definition: send_command_help
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
         pages = bot.format.format_help_for(ctx, ctx.invoked_subcommand)
         for page in pages:
             await bot.send_message(ctx.message.channel, page)
 
-#   Definition: user_allowed
+
+# Definition: user_allowed
 def user_allowed(message):
     author = message.author
     if author.bot or author == bot.user:
@@ -165,13 +173,15 @@ def user_allowed(message):
     else:
         return True
 
-#   Async Definitions for Discord API Communication. Getting the Authorization URL and Bot Owner Info
+
+# Async Definitions for Discord API Communication. Getting the Authorization URL and Bot Owner Info
 async def get_oauth_url():
     try:
         data = await bot.application_info()
     except Exception as e:
         return "Could Not Retrieve Invite Link :crying_cat_face:. Error: {}".format(e)
     return discord.utils.oauth_url(data.id)
+
 
 async def set_bot_owner():
     try:
@@ -182,6 +192,7 @@ async def set_bot_owner():
         return
     print("{} has been recognised as the owner of this bot by the Discord API :smile_cat:".format(data.owner_name))
 
+
 #   Definition: check_folders - Are the folders set up correctly?
 def check_folders():
     folders = ("data", "data/chronoxia", "cogs", "cogs/utils")
@@ -190,7 +201,8 @@ def check_folders():
             print("Creating " + folder + "folder. Please Wait...")
             os.makedirs(folder)
 
-#   Definition: check_configs - Are the Configs for the Bot Set Up?
+
+# Definition: check_configs - Are the Configs for the Bot Set Up?
 def check_configs():
     if settings.bot_settings == settings.default_settings:
         print("Chronoxia - First Run Only Configuration")
@@ -202,10 +214,10 @@ def check_configs():
 
         choice = input("> ")
 
-        if "@" not in choice and len(choice) >= 50: #Assuming that they use a token
+        if "@" not in choice and len(choice) >= 50:  # Assuming that they use a token
             settings.login_type = "token"
             settings.email = choice
-        elif "@" in choice: #Assuming Email Login
+        elif "@" in choice:  # Assuming Email Login
             settings.login_type = "email"
             settings.email = choice
             settings.password = input("\nPassword> ")
@@ -231,7 +243,7 @@ def check_configs():
                 print("\nOnce you're done with the configuration, you will have to type "
                       "'{}set owner' *in Discord's chat*\nto set yourself as owner.\n"
                       "Press enter to continue".format(new_prefix))
-                settings.owner = input("") # Shh, this was never here ;)
+                settings.owner = input("")  # Shh, this was never here ;)
                 if settings.owner == "":
                     settings.owner = "id_here"
                 if not settings.owner.isdigit() or len(settings.owner) < 17:
@@ -266,7 +278,8 @@ def check_configs():
         print("Creating new modules.json. PLease Wait...")
         dataIO.save_json("data/chronoxia/cogs.json", {})
 
-#   Definition - Set Logger
+
+# Definition - Set Logger
 def set_logger():
     global logger
     logger = logging.getLogger("discord")
@@ -281,7 +294,7 @@ def set_logger():
     logger = logging.getLogger("chronoxia")
     logger.setLevel(logging.INFO)
 
-    chrono_format =  logging.Formatter(
+    chrono_format = logging.Formatter(
         '%(asctime)s %(levelname)s %(module)s %(funcName)s %(lineno)d: '
         '%(message)s',
         datefmt="[%d/%m/%Y %H:%M]")
@@ -292,11 +305,12 @@ def set_logger():
 
     fhandler = logging.handlers.RotatingFileHandler(
         filename='data/chronoxia/chrono.log', encoding='utf-8', mode='a',
-        maxBytes=10**7, backupCount=5)
+        maxBytes=10 ** 7, backupCount=5)
     fhandler.setFormatter(chrono_format)
 
     logger.addHandler(fhandler)
     logger.addHandler(stdout_handler)
+
 
 #   Definition - Ensure Reply and Get Answer
 def ensure_reply(msg):
@@ -304,6 +318,7 @@ def ensure_reply(msg):
     while choice == "":
         choice = input(msg)
     return choice
+
 
 def get_answer():
     choices = ("yes", "y", "no", "n")
@@ -315,11 +330,13 @@ def get_answer():
     else:
         return False
 
-#   Definition - Set and Load Cogs - IMPORTANT
-def set_cog(cog,value):
+
+# Definition - Set and Load Cogs - IMPORTANT
+def set_cog(cog, value):
     data = dataIO.load_json("data/chronoxia/cogs.json")
     data[cog] = value
     dataIO.save_json("data/chronoxia/cogs.json", data)
+
 
 def load_cogs():
     try:
@@ -337,7 +354,7 @@ def load_cogs():
 
     bot.load_extension('cogs.owner')
     owner_cog = bot.get_cog('Owner')
-    if owner_cog is None: #Assuming the user deleted the Owner Cog
+    if owner_cog is None:  # Assuming the user deleted the Owner Cog
         print("You got rid of owner.py!!! It had functions that I need"
               "to run special events :( I can not operate without it!!")
         print()
@@ -382,7 +399,8 @@ def load_cogs():
 
         return owner_cog
 
-#   Definition - main()
+
+# Definition - main()
 def main():
     global settings
 
@@ -404,9 +422,9 @@ def main():
         print("My Owner has not been set :(. Do '{}set owner' in chat to set"
               "yourself as owner.".format(bot.command_prefix[0]))
     else:
-        owner_cog.owner.hidden = True # Hides the command {}set owner from view in {}help
+        owner_cog.owner.hidden = True  # Hides the command {}set owner from view in {}help
     print("--- Logging In... ---")
-    if os.name == "nt" and os.path.isfile("update.bat"): # Check for Windows and File called Update.bat
+    if os.name == "nt" and os.path.isfile("update.bat"):  # Check for Windows and File called Update.bat
         print("Please use update.bat to keep me updated :D")
     else:
         print("Please ensure that you keep me updated by doing: git pull")
@@ -418,6 +436,7 @@ def main():
     else:
         yield from bot.login(settings.email, settings.password)
     yield from bot.connect()
+
 
 # If Statement
 if __name__ == '__main__':
