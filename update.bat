@@ -15,7 +15,7 @@ if NOT %errorLevel% == 0 (
 ::Checking git and updating
 git.exe --version > NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 GOTO gitmessage
-echo Updating Red...
+echo Updating Chronoxia...
 git stash
 git pull
 
