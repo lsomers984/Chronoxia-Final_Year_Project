@@ -95,14 +95,52 @@ class Owner:
     @commands.group(invoke_without_command=True)
     @checks.is_owner()
     async def unload(self, *, module: str):
+        """Unloads a Module
 
-    # TODO
+        E.g: [p]unload mod
+        """
+        module = module.split()
+        if "cogs." not in module:
+            module = "cogs." + module
+        if not self.__does_cogfile_exist(module):
+            await self.bot.say("Module does not Exist on my Filesystem."
+                               " Autoloading will not be turned off in case"
+                               " this was not supposed to happen :crying_cat_face:")
+        else:
+            set_cog(module, False)
+        try:  # Attempt to Unload it - No Matter what happens
+            self._unload_cog(module)
+        except OwnerUnloadWithoutReloadError:
+            await self.bot.say("Hey, Dont touch that! Unless you are reloading then "
+                               "Carry on!")
+        except CogUnloadError as e:
+            log.exception(e)
+            traceback.print_exc()
+            await self.bot.say('Sorry, I am unable to safely disable that Module.')
+        else:
+            await self.bot.say("Module is now Disabled. To Renable just do !load <module_name>.")
 
     @unload.command(name=all)
     @checks.is_owner
     async def unload_all(self):
-
-    # TODO
+        """Unloads all Modules"""
+        cogs = self._list_cogs()
+        still_loaded = []
+        for cog in cogs:
+            set_cog(cog, False)
+            try:
+                self._unload_cog(cog)
+            except OwnerUnloadWithoutReloadError:
+                pass
+            except CogUnloadError as e:
+                log.exception(e)
+                traceback.print_exc()
+                still_loaded.append(cog)
+        if still_loaded:
+            still_loaded = ", ".join(still_loaded)
+            await self.boy.say("I was unable to unload some modules - ""{}".format(still_loaded) + ", I wonder why?")
+        else:
+            await self.bot.say("All of my modules are now unloaded :( I feel lighter!")
 
     @checks.is_mod()
     @commands.command(name="reload")
