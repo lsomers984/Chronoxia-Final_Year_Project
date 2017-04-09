@@ -18,7 +18,6 @@ import aiohttp
 log = logging.getLogger("chronoxia.owner")
 
 
-# Classes for Exception Handling
 class CogNotFoundError(Exception):
     pass
 
@@ -39,12 +38,10 @@ class OwnerUnloadWithoutReloadError(CogUnloadError):
     pass
 
 
-# Owner Class
 class Owner:
-    """All Owner Commands that relates to Bot Operations and Maintenance
+    """All owner-only commands that relate to debug bot operations.
     """
 
-    # Definition for __init__
     def __init__(self, bot):
         self.bot = bot
         self.setowner_lock = False
@@ -52,55 +49,49 @@ class Owner:
         self.disabled_commands = dataIO.load_json(self.file_path)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-        if __name__ == '__main__':
-            def __unload(self):
-                self.session.close()
-
-                # Explanation taken from Discord.Py
-                # @checks.is_owner - Checks in accordance to the ID set within the Discord API/Bot Settings,
-                #                    If the user trying to run the command is Owner
+    def __unload(self):
+        self.session.close()
 
     @commands.command()
     @checks.is_owner()
-    async def load(self, *, module: str):
-        """Loads a Module
-        Example: [p]load Mod (where [p] = Prefix)
-        """
-        module = module.strip()
+    async def load(self, *, cog_name: str):
+        """Loads a cog
+
+        Example: load mod"""
+        module = cog_name.strip()
         if "cogs." not in module:
             module = "cogs." + module
         try:
             self._load_cog(module)
         except CogNotFoundError:
-            await self.bot.say("That Module could not be found :crying_cat_face:")
+            await self.bot.say("That cog could not be found.")
         except CogLoadError as e:
             log.exception(e)
             traceback.print_exc()
-            await self.bot.say("There was an issue loading this module :crying_cat_face:. "
-                               "Check your console or logs for more information\n"
-                               "\nError: '{}'".format(e.args[0]))
+            await self.bot.say("There was an issue loading the cog. Check"
+                               " your console or logs for more information.")
         except Exception as e:
             log.exception(e)
             traceback.print_exc()
-            await self.bot.say('Module was found and possibly loaded but '
+            await self.bot.say('Cog was found and possibly loaded but '
                                'something went wrong. Check your console '
-                               'or logs for more information.\n\n'
-                               'Error: `{}`'.format(e.args[0]))
+                               'or logs for more information.')
         else:
             set_cog(module, True)
-            await self.disabled_commands()
-            await self.bot.say("Module Enabled. Have fun! :smiley_cat:")
+            await self.disable_commands()
+            await self.bot.say("The cog has been loaded.")
 
     @commands.group(invoke_without_command=True)
     @checks.is_owner()
-    async def unload(self, *, module: str):
-        """Unloads a module
+    async def unload(self, *, cog_name: str):
+        """Unloads a cog
+
         Example: unload mod"""
-        module = module.strip()
+        module = cog_name.strip()
         if "cogs." not in module:
             module = "cogs." + module
         if not self._does_cogfile_exist(module):
-            await self.bot.say("That module file doesn't exist. I will not"
+            await self.bot.say("That cog file doesn't exist. I will not"
                                " turn off autoloading at start just in case"
                                " this isn't supposed to happen.")
         else:
@@ -113,14 +104,14 @@ class Owner:
         except CogUnloadError as e:
             log.exception(e)
             traceback.print_exc()
-            await self.bot.say('Unable to safely disable that module.')
+            await self.bot.say('Unable to safely unload that cog.')
         else:
-            await self.bot.say("Module disabled.")
+            await self.bot.say("The cog has been unloaded.")
 
     @unload.command(name="all")
     @checks.is_owner()
     async def unload_all(self):
-        """Unloads all modules"""
+        """Unloads all cogs"""
         cogs = self._list_cogs()
         still_loaded = []
         for cog in cogs:
@@ -136,15 +127,17 @@ class Owner:
         if still_loaded:
             still_loaded = ", ".join(still_loaded)
             await self.bot.say("I was unable to unload some cogs: "
-                               "{}".format(still_loaded))
+                "{}".format(still_loaded))
         else:
             await self.bot.say("All cogs are now unloaded.")
 
-    @checks.is_mod()
+    @checks.is_owner()
     @commands.command(name="reload")
-    async def _reload(self, module):
-        """Reloads a module
+    async def _reload(self, *, cog_name: str):
+        """Reloads a cog
+
         Example: reload audio"""
+        module = cog_name.strip()
         if "cogs." not in module:
             module = "cogs." + module
 
@@ -156,19 +149,18 @@ class Owner:
         try:
             self._load_cog(module)
         except CogNotFoundError:
-            await self.bot.say("That module cannot be found.")
+            await self.bot.say("That cog cannot be found.")
         except NoSetupError:
-            await self.bot.say("That module does not have a setup function.")
+            await self.bot.say("That cog does not have a setup function.")
         except CogLoadError as e:
             log.exception(e)
             traceback.print_exc()
-            await self.bot.say("That module could not be loaded. Check your"
-                               " console or logs for more information.\n\n"
-                               "Error: `{}`".format(e.args[0]))
+            await self.bot.say("That cog could not be loaded. Check your"
+                               " console or logs for more information.")
         else:
             set_cog(module, True)
             await self.disable_commands()
-            await self.bot.say("Module reloaded.")
+            await self.bot.say("The cog has been reloaded.")
 
     @commands.command(name="cogs")
     @checks.is_owner()
@@ -200,7 +192,6 @@ class Owner:
     @checks.is_owner()
     async def debug(self, ctx, *, code):
         """Evaluates code"""
-
         def check(m):
             if m.content.strip().lower() == "more":
                 return True
@@ -249,7 +240,7 @@ class Owner:
             if i != 0 and i % 4 == 0:
                 last = await self.bot.say("There are still {} messages. "
                                           "Type `more` to continue."
-                                          "".format(len(result) - (i + 1)))
+                                          "".format(len(result) - (i+1)))
                 msg = await self.bot.wait_for_message(author=author,
                                                       channel=channel,
                                                       check=check,
@@ -284,9 +275,9 @@ class Owner:
 
         if self.bot.settings.owner is not None:
             await self.bot.say(
-                "The owner is already set. Remember that setting the owner "
-                "to someone else other than who hosts the bot has security "
-                "repercussions and is *NOT recommended*. Proceed at your own risk."
+            "The owner is already set. Remember that setting the owner "
+            "to someone else other than who hosts the bot has security "
+            "repercussions and is *NOT recommended*. Proceed at your own risk."
             )
             await asyncio.sleep(3)
 
@@ -319,7 +310,7 @@ class Owner:
     @_set.command(pass_context=True)
     @checks.is_owner()
     async def prefix(self, ctx, *prefixes):
-        """Sets CHronoxia's global prefixes
+        """Sets chrono's global prefixes
 
         Accepts multiple prefixes separated by a space. Enclose in double
         quotes if a prefix contains spaces.
@@ -339,7 +330,7 @@ class Owner:
     @_set.command(pass_context=True, no_pm=True)
     @checks.serverowner_or_permissions(administrator=True)
     async def serverprefix(self, ctx, *prefixes):
-        """Sets Chronoxia's prefixes for this server
+        """Sets chrono's prefixes for this server
 
         Accepts multiple prefixes separated by a space. Enclose in double
         quotes if a prefix contains spaces.
@@ -372,7 +363,7 @@ class Owner:
     @_set.command(pass_context=True)
     @checks.is_owner()
     async def name(self, ctx, *, name):
-        """Sets Chronoxiad's name"""
+        """Sets chrono's name"""
         name = name.strip()
         if name != "":
             try:
@@ -392,7 +383,7 @@ class Owner:
     @_set.command(pass_context=True, no_pm=True)
     @checks.is_owner()
     async def nickname(self, ctx, *, nickname=""):
-        """Sets Chronoxiad's nickname
+        """Sets chrono's nickname
 
         Leaving this empty will remove it."""
         nickname = nickname.strip()
@@ -403,12 +394,12 @@ class Owner:
             await self.bot.say("Done.")
         except discord.Forbidden:
             await self.bot.say("I cannot do that, I lack the "
-                               "\"Change Nickname\" permission.")
+                "\"Change Nickname\" permission.")
 
     @_set.command(pass_context=True)
     @checks.is_owner()
     async def game(self, ctx, *, game=None):
-        """Sets Chronoxia's playing status
+        """Sets chrono's playing status
 
         Leaving this empty will clear it."""
 
@@ -429,7 +420,7 @@ class Owner:
     @_set.command(pass_context=True)
     @checks.is_owner()
     async def status(self, ctx, *, status=None):
-        """Sets Chronoxia's status
+        """Sets chrono's status
 
         Statuses:
             online
@@ -438,11 +429,11 @@ class Owner:
             invisible"""
 
         statuses = {
-            "online": discord.Status.online,
-            "idle": discord.Status.idle,
-            "dnd": discord.Status.dnd,
-            "invisible": discord.Status.invisible
-        }
+                    "online"    : discord.Status.online,
+                    "idle"      : discord.Status.idle,
+                    "dnd"       : discord.Status.dnd,
+                    "invisible" : discord.Status.invisible
+                   }
 
         server = ctx.message.server
 
@@ -464,7 +455,7 @@ class Owner:
     @_set.command(pass_context=True)
     @checks.is_owner()
     async def stream(self, ctx, streamer=None, *, stream_title=None):
-        """Sets Chronoxia's streaming status
+        """Sets chrono's streaming status
 
         Leaving both streamer and stream_title empty will clear it."""
 
@@ -490,7 +481,7 @@ class Owner:
     @_set.command()
     @checks.is_owner()
     async def avatar(self, url):
-        """Sets Chronoxia's avatar"""
+        """Sets chrono's avatar"""
         try:
             async with self.session.get(url) as r:
                 data = await r.read()
@@ -506,7 +497,7 @@ class Owner:
     @_set.command(name="token")
     @checks.is_owner()
     async def _token(self, token):
-        """Sets Chronoxia's login token"""
+        """Sets chrono's login token"""
         if len(token) < 50:
             await self.bot.say("Invalid token.")
         else:
@@ -517,11 +508,11 @@ class Owner:
 
     @commands.command()
     @checks.is_owner()
-    async def shutdown(self, silently: bool = False):
-        """Shuts down Chronoxia"""
+    async def shutdown(self, silently : bool=False):
+        """Shuts down chrono"""
         wave = "\N{WAVING HAND SIGN}"
         skin = "\N{EMOJI MODIFIER FITZPATRICK TYPE-3}"
-        try:  # We don't want missing perms to stop our shutdown
+        try: # We don't want missing perms to stop our shutdown
             if not silently:
                 await self.bot.say("Shutting down... " + wave + skin)
         except:
@@ -530,10 +521,10 @@ class Owner:
 
     @commands.command()
     @checks.is_owner()
-    async def restart(self, silently: bool = False):
-        """Attempts to restart Chronoxia
+    async def restart(self, silently : bool=False):
+        """Attempts to restart chrono
 
-        Makes Chronoxia quit with exit code 26
+        Makes chrono quit with exit code 26
         The restart is not guaranteed: it must be dealt
         with by the process manager in use"""
         try:
@@ -588,7 +579,7 @@ class Owner:
             comm_obj.enabled = True
             comm_obj.hidden = False
         except:  # In case it was in the disabled list but not currently loaded
-            pass  # No point in even checking what returns
+            pass # No point in even checking what returns
 
     async def get_command(self, command):
         command = command.split()
@@ -605,7 +596,7 @@ class Owner:
                 return False
         return comm_obj
 
-    async def disable_commands(self):  # runs at boot
+    async def disable_commands(self): # runs at boot
         for cmd in self.disabled_commands:
             cmd_obj = await self.get_command(cmd)
             try:
@@ -616,14 +607,14 @@ class Owner:
 
     @commands.command()
     @checks.is_owner()
-    async def join(self, invite_url: discord.Invite = None):
+    async def join(self, invite_url: discord.Invite=None):
         """Joins new server"""
         if hasattr(self.bot.user, 'bot') and self.bot.user.bot is True:
             # Check to ensure they're using updated discord.py
             msg = ("I have a **BOT** tag, so I must be invited with an OAuth2"
                    " link:\nFor more information: "
                    "https://lsomers984.github.io/"
-                   "Chrono-Docs/chrono_guide_bot_accounts/#bot-invites")
+                   "chrono-Docs/chrono_guide_bot_accounts/#bot-invites")
             await self.bot.say(msg)
             if hasattr(self.bot, 'oauth_url'):
                 await self.bot.whisper("Here's my OAUTH2 link:\n{}".format(
@@ -688,7 +679,7 @@ class Owner:
 
     async def leave_confirmation(self, server, owner, ctx):
         await self.bot.say("Are you sure you want me "
-                           "to leave {}? (yes/no)".format(server.name))
+                    "to leave {}? (yes/no)".format(server.name))
 
         msg = await self.bot.wait_for_message(author=owner, timeout=15)
 
@@ -702,7 +693,8 @@ class Owner:
             await self.bot.say("Alright then.")
 
     @commands.command(pass_context=True)
-    async def contact(self, ctx, *, message: str):
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def contact(self, ctx, *, message : str):
         """Sends message to the owner"""
         if self.bot.settings.owner is None:
             await self.bot.say("I have no owner set.")
@@ -731,10 +723,9 @@ class Owner:
 
     @commands.command()
     async def info(self):
-        """Shows info about Chronoxia"""
+        """Shows info about chrono"""
         author_repo = "https://github.com/lsomers984"
         chrono_repo = author_repo + "/Chronoxia---Final-Year-Project"
-        server_url = "Link Coming Soon"
         dpy_repo = "https://github.com/Rapptz/discord.py"
         python_url = "https://www.python.org/"
         since = datetime.datetime(2016, 1, 2, 0, 0)
@@ -757,19 +748,19 @@ class Owner:
 
         about = (
             "This is an instance of [Chronoxia, an open source Discord bot]({}) "
-            "created by [lsomers984]({}) and improved by many.\n\n"
-            "Chronoxia is backed by a passionate community who contributes and "
-            "creates content for everyone to enjoy. [Join us today]({}) "
+            "created by [lsomers984//W0lfstorm]({}) and improved by many.\n\n"
+            "chrono is backed by a passionate community who contributes and "
+            "creates content for everyone to enjoy."
             "and help us improve!\n\n"
-            "".format(chrono_repo, author_repo, server_url))
+            "".format(chrono_repo, author_repo))
 
-        embed = discord.Embed(colour=discord.Colour.red())
+        embed = discord.Embed(colour=discord.Colour.purple())
         embed.add_field(name="Instance owned by", value=str(owner))
         embed.add_field(name="Python", value=py_version)
         embed.add_field(name="discord.py", value=dpy_version)
         embed.add_field(name="About Chronoxia", value=about, inline=False)
         embed.set_footer(text="Bringing joy since 02 Jan 2016 (over "
-                              "{} days ago!)".format(days_since))
+                         "{} days ago!)".format(days_since))
 
         try:
             await self.bot.say(embed=embed)
@@ -779,7 +770,7 @@ class Owner:
 
     @commands.command()
     async def uptime(self):
-        """Shows Chronoxia's uptime"""
+        """Shows chrono's uptime"""
         since = self.bot.uptime.strftime("%Y-%m-%d %H:%M:%S")
         passed = self.get_bot_uptime()
         await self.bot.say("Been up for: **{}** (since {} UTC)"
@@ -787,7 +778,7 @@ class Owner:
 
     @commands.command()
     async def version(self):
-        """Shows Chronoxia's current version"""
+        """Shows chrono's current version"""
         response = self.bot.loop.run_in_executor(None, self._get_version)
         result = await asyncio.wait_for(response, timeout=10)
         try:
@@ -795,6 +786,23 @@ class Owner:
         except discord.HTTPException:
             await self.bot.say("I need the `Embed links` permission "
                                "to send this")
+
+    @commands.command(pass_context=True)
+    @checks.is_owner()
+    async def traceback(self, ctx, public: bool=False):
+        """Sends to the owner the last command exception that has occurred
+
+        If public (yes is specified), it will be sent to the chat instead"""
+        if not public:
+            destination = ctx.message.author
+        else:
+            destination = ctx.message.channel
+
+        if self.bot._last_exception:
+            for page in pagify(self.bot._last_exception):
+                await self.bot.send_message(destination, box(page, lang="py"))
+        else:
+            await self.bot.say("No exception has occurred yet.")
 
     def _load_cog(self, cogname):
         if not self._does_cogfile_exist(cogname):
@@ -830,7 +838,7 @@ class Owner:
 
     def _wait_for_answer(self, author):
         print(author.name + " requested to be set as owner. If this is you, "
-                            "type 'yes'. Otherwise press enter.")
+              "type 'yes'. Otherwise press enter.")
         print()
         print("*DO NOT* set anyone else as owner. This has security "
               "repercussions.")
@@ -850,24 +858,40 @@ class Owner:
             self.setowner_lock = False
 
     def _get_version(self):
-        url = os.popen(r'git config --get remote.origin.url')
-        url = url.read().strip()[:-4]
-        repo_name = url.split("/")[-1]
-        commits = os.popen(r'git show -s -n 3 HEAD --format="%cr|%s|%H"')
-        ncommits = os.popen(r'git rev-list --count HEAD').read()
+        if not os.path.isdir(".git"):
+            msg = "This instance of chrono hasn't been installed with git."
+            e = discord.Embed(title=msg,
+                              colour=discord.Colour.red())
+            return e
 
-        lines = commits.read().split('\n')
+        commands = " && ".join((
+            r'git config --get remote.origin.url',         # Remote URL
+            r'git rev-list --count HEAD',                  # Number of commits
+            r'git rev-parse --abbrev-ref HEAD',            # Branch name
+            r'git show -s -n 3 HEAD --format="%cr|%s|%H"'  # Last 3 commits
+        ))
+        result = os.popen(commands).read()
+        url, ncommits, branch, commits = result.split("\n", 3)
+        if url.endswith(".git"):
+            url = url[:-4]
+        if url.startswith("git@"):
+            domain, _, resource = url[4:].partition(':')
+            url = 'https://{}/{}'.format(domain, resource)
+        repo_name = url.split("/")[-1]
+
         embed = discord.Embed(title="Updates of " + repo_name,
                               description="Last three updates",
                               colour=discord.Colour.red(),
-                              url=url)
-        for line in lines:
+                              url="{}/tree/{}".format(url, branch))
+
+        for line in commits.split('\n'):
             if not line:
                 continue
             when, commit, chash = line.split("|")
             commit_url = url + "/commit/" + chash
             content = "[{}]({}) - {} ".format(chash[:6], commit_url, commit)
             embed.add_field(name=when, value=content, inline=False)
+
         embed.set_footer(text="Total commits: " + ncommits)
 
         return embed

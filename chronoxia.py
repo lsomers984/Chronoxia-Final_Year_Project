@@ -217,7 +217,7 @@ async def pip_install(self, name, *, timeout=None):
         name
     ]
 
-    if IS_MAC:  # --target is a problem on Homebrew. See PR #552
+    if IS_MAC:  # --target is a problem on Homebrew.
         args.remove("--target")
         args.remove("lib")
 
@@ -227,7 +227,9 @@ async def pip_install(self, name, *, timeout=None):
         return not bool(code)
 
     response = self.loop.run_in_executor(None, install)
-    return await asyncio.wait_for(response, timeout=timeout)  # Format Class
+    return await asyncio.wait_for(response, timeout=timeout)  
+
+    # Format Class
 class Formatter(commands.HelpFormatter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -360,8 +362,7 @@ def initialize(bot_class=Bot, formatter_class=Formatter):
         if bot.user_allowed(message):
             await bot.process_commands(message)
 
-            # Bot Event Def - on_command_error
-
+    # Bot Event Def - on_command_error
     @bot.event
     async def on_command_error(error, ctx):
         channel = ctx.message.channel
