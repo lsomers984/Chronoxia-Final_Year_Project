@@ -2,10 +2,9 @@ from __future__ import print_function
 import os
 import sys
 import subprocess
-
-try:  # Older Pythons lack this
-    import urllib.request  # We'll let them reach the Python
-    from importlib.util import find_spec  # check anyway
+try:                                        # Older Pythons lack this
+    import urllib.request                   # We'll let them reach the Python
+    from importlib.util import find_spec    # check anyway
 except ImportError:
     pass
 import platform
@@ -15,7 +14,6 @@ import argparse
 import shutil
 import stat
 import time
-
 try:
     import pip
 except ImportError:
@@ -38,9 +36,9 @@ INTERACTIVE_MODE = not len(sys.argv) > 1  # CLI flags = non-interactive
 PYTHON_OK = sys.version_info >= (3, 5)
 
 FFMPEG_FILES = {
-    "ffmpeg.exe": "e0d60f7c0d27ad9d7472ddf13e78dc89",
-    "ffplay.exe": "d100abe8281cbcc3e6aebe550c675e09",
-    "ffprobe.exe": "0e84b782c0346a98434ed476e937764f"
+    "ffmpeg.exe"  : "e0d60f7c0d27ad9d7472ddf13e78dc89",
+    "ffplay.exe"  : "d100abe8281cbcc3e6aebe550c675e09",
+    "ffprobe.exe" : "0e84b782c0346a98434ed476e937764f"
 }
 
 
@@ -52,7 +50,7 @@ def parse_cli_arguments():
     parser.add_argument("--auto-restart",
                         help="Autorestarts Chronoxia in case of issues",
                         action="store_true")
-    parser.add_argument("--update-chrono",
+    parser.add_argument("--update-Chronoxia",
                         help="Updates Chronoxia (git)",
                         action="store_true")
     parser.add_argument("--update-reqs",
@@ -85,7 +83,7 @@ def install_reqs(audio):
         "-r", txt
     ]
 
-    if IS_MAC:  # --target is a problem on Homebrew. See PR #552
+    if IS_MAC: # --target is a problem on Homebrew. See PR #552
         args.remove("--target")
         args.remove(REQS_DIR)
 
@@ -94,7 +92,7 @@ def install_reqs(audio):
     if code == 0:
         print("\nRequirements setup completed.")
     else:
-        print("\nAn error occured and the requirements setup might "
+        print("\nAn error occurred and the requirements setup might "
               "not be completed. Consult the docs.\n")
 
 
@@ -119,7 +117,7 @@ def update_pip():
         print("\nAn error occurred and pip might not have been updated.")
 
 
-def update_chrono():
+def update_Chronoxia():
     try:
         code = subprocess.call(("git", "pull", "--ff-only"))
     except FileNotFoundError:
@@ -129,12 +127,12 @@ def update_chrono():
     if code == 0:
         print("\nChronoxia has been updated")
     else:
-        print("\nRChronoxia could not update properly. If this is caused by edits "
+        print("\nChronoxia could not update properly. If this is caused by edits "
               "you have made to the code you can try the repair option from "
               "the Maintenance submenu")
 
 
-def reset_chrono(reqs=False, data=False, cogs=False, git_reset=False):
+def reset_Chronoxia(reqs=False, data=False, cogs=False, git_reset=False):
     if reqs:
         try:
             shutil.rmtree(REQS_DIR, onerror=remove_readonly)
@@ -142,7 +140,7 @@ def reset_chrono(reqs=False, data=False, cogs=False, git_reset=False):
         except FileNotFoundError:
             pass
         except Exception as e:
-            print("An error occured when trying to remove installed "
+            print("An error occurred when trying to remove installed "
                   "requirements: {}".format(e))
     if data:
         try:
@@ -151,7 +149,7 @@ def reset_chrono(reqs=False, data=False, cogs=False, git_reset=False):
         except FileNotFoundError:
             pass
         except Exception as e:
-            print("An error occured when trying to remove the 'data' folder: "
+            print("An error occurred when trying to remove the 'data' folder: "
                   "{}".format(e))
 
     if cogs:
@@ -161,13 +159,13 @@ def reset_chrono(reqs=False, data=False, cogs=False, git_reset=False):
         except FileNotFoundError:
             pass
         except Exception as e:
-            print("An error occured when trying to remove the 'cogs' folder: "
+            print("An error occurred when trying to remove the 'cogs' folder: "
                   "{}".format(e))
 
     if git_reset:
         code = subprocess.call(("git", "reset", "--hard"))
         if code == 0:
-            print("RChronoxia has been restored to the last local commit.")
+            print("Chronoxia has been restored to the last local commit.")
         else:
             print("The repair has failed.")
 
@@ -217,10 +215,10 @@ def download_ffmpeg(bitness):
 
 
 def verify_requirements():
-    sys.path_importer_cache = {}  # I don't know if the cache reset has any
-    basic = find_spec("discord")  # side effect. Without it, the lib folder
-    audio = find_spec("nacl")  # wouldn't be seen if it didn't exist
-    if not basic:  # when the launcher was started
+    sys.path_importer_cache = {} # I don't know if the cache reset has any
+    basic = find_spec("discord") # side effect. Without it, the lib folder
+    audio = find_spec("nacl")    # wouldn't be seen if it didn't exist
+    if not basic:                # when the launcher was started
         return None
     elif not audio:
         return False
@@ -231,8 +229,8 @@ def verify_requirements():
 def is_git_installed():
     try:
         subprocess.call(["git", "--version"], stdout=subprocess.DEVNULL,
-                        stdin=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL)
+                                              stdin =subprocess.DEVNULL,
+                                              stderr=subprocess.DEVNULL)
     except FileNotFoundError:
         return False
     else:
@@ -247,7 +245,7 @@ def requirements_menu():
         print("1. Install basic + audio requirements (recommended)")
         print("2. Install basic requirements")
         if IS_WINDOWS:
-            print("\nffmpeg (audio requirement):")
+            print("\nffmpeg (required for audio):")
             print("3. Install ffmpeg 32bit")
             if IS_64BIT:
                 print("4. Install ffmpeg 64bit (recommended on Windows 64bit)")
@@ -292,7 +290,7 @@ def update_menu():
         print("\n0. Go back")
         choice = user_choice()
         if choice == "1":
-            update_chrono()
+            update_Chronoxia()
             print("Updating requirements...")
             reqs = verify_requirements()
             if reqs is not None:
@@ -301,7 +299,7 @@ def update_menu():
                 print("The requirements haven't been installed yet.")
             wait()
         elif choice == "2":
-            update_chrono()
+            update_Chronoxia()
             wait()
         elif choice == "3":
             reqs = verify_requirements()
@@ -334,34 +332,34 @@ def maintenance_menu():
             print("Any code modification you have made will be lost. Data/"
                   "non-default cogs will be left intact. Are you sure?")
             if user_pick_yes_no():
-                reset_chrono(git_reset=True)
+                reset_Chronoxia(git_reset=True)
                 wait()
         elif choice == "2":
             print("Are you sure? This will wipe the 'data' folder, which "
                   "contains all your settings and cogs' data.\nThe 'cogs' "
                   "folder, however, will be left intact.")
             if user_pick_yes_no():
-                reset_chrono(data=True)
+                reset_Chronoxia(data=True)
                 wait()
         elif choice == "3":
-            reset_chrono(reqs=True)
+            reset_Chronoxia(reqs=True)
             wait()
         elif choice == "4":
             print("Are you sure? This will wipe ALL your Chronoxia's installation "
                   "data.\nYou'll lose all your settings, cogs and any "
                   "modification you have made.\nThere is no going back.")
             if user_pick_yes_no():
-                reset_chrono(reqs=True, data=True, cogs=True, git_reset=True)
+                reset_Chronoxia(reqs=True, data=True, cogs=True, git_reset=True)
                 wait()
         elif choice == "0":
             break
         clear_screen()
 
 
-def run_chrono(autorestart):
+def run_Chronoxia(autorestart):
     interpreter = sys.executable
 
-    if interpreter is None:  # This should never happen
+    if interpreter is None: # This should never happen
         raise RuntimeError("Couldn't find Python's interpreter")
 
     if verify_requirements() is None:
@@ -382,7 +380,7 @@ def run_chrono(autorestart):
             if code == 0:
                 break
             elif code == 26:
-                print("Restarting...")
+                print("Restarting Chronoxia...")
                 continue
             else:
                 if not autorestart:
@@ -425,6 +423,7 @@ def remove_readonly(func, path, excinfo):
 
 
 def remove_reqs_readonly():
+    """Workaround for issue #569"""
     if not os.path.isdir(REQS_DIR):
         return
     os.chmod(REQS_DIR, 0o755)
@@ -443,15 +442,16 @@ def calculate_md5(filename):
     return hash_md5.hexdigest()
 
 
-# Chronoxia Script for Fast Boot
 def create_fast_start_scripts():
+    """Creates scripts for fast boot of Chronoxia without going
+    through the launcher"""
     interpreter = sys.executable
     if not interpreter:
         return
 
     call = "\"{}\" launcher.py".format(interpreter)
-    start_chrono = "{} --start".format(call)
-    start_chrono_autorestart = "{} --start --auto-restart".format(call)
+    start_Chronoxia = "{} --start".format(call)
+    start_Chronoxia_autorestart = "{} --start --auto-restart".format(call)
     modified = False
 
     if IS_WINDOWS:
@@ -466,12 +466,12 @@ def create_fast_start_scripts():
         else:
             ext = ".command"
 
-    start_chrono = ccd + start_chrono + pause
-    start_chrono_autorestart = ccd + start_chrono_autorestart + pause
+    start_Chronoxia             = ccd + start_Chronoxia             + pause
+    start_Chronoxia_autorestart = ccd + start_Chronoxia_autorestart + pause
 
     files = {
-        "start_chrono" + ext: start_chrono,
-        "start_chrono_autorestart" + ext: start_chrono_autorestart
+        "start_Chronoxia"             + ext : start_Chronoxia,
+        "start_Chronoxia_autorestart" + ext : start_Chronoxia_autorestart
     }
 
     if not IS_WINDOWS:
@@ -484,7 +484,7 @@ def create_fast_start_scripts():
             with open(filename, "w") as f:
                 f.write(content)
 
-    if not IS_WINDOWS and modified:  # Let's make them executable on Unix
+    if not IS_WINDOWS and modified: # Let's make them executable on Unix
         for script in files:
             st = os.stat(script)
             os.chmod(script, st.st_mode | stat.S_IEXEC)
@@ -495,7 +495,7 @@ def main():
     has_git = is_git_installed()
     is_git_installation = os.path.isdir(".git")
     if IS_WINDOWS:
-        os.system("TITLE Chronoxia - Launcher")
+        os.system("TITLE Chronoxia Discord Bot - Launcher")
     clear_screen()
 
     try:
@@ -507,7 +507,7 @@ def main():
         print(INTRO)
 
         if not is_git_installation:
-            print("WARNING: It doesnt' look like Chronoxia has been "
+            print("WARNING: It doesn't look like Chronoxia has been "
                   "installed with git.\nThis means that you won't "
                   "be able to update and some features won't be working.\n"
                   "A reinstallation is recommended. Follow the guide "
@@ -527,9 +527,9 @@ def main():
         print("\n0. Quit")
         choice = user_choice()
         if choice == "1":
-            run_chrono(autorestart=True)
+            run_Chronoxia(autorestart=True)
         elif choice == "2":
-            run_chrono(autorestart=False)
+            run_Chronoxia(autorestart=False)
         elif choice == "3":
             update_menu()
         elif choice == "4":
@@ -539,7 +539,6 @@ def main():
         elif choice == "0":
             break
         clear_screen()
-
 
 args = parse_cli_arguments()
 
@@ -560,9 +559,9 @@ if __name__ == '__main__':
         wait()
         exit(1)
     if args.repair:
-        reset_chrono(git_reset=True)
-    if args.update_chrono:
-        update_chrono()
+        reset_Chronoxia(git_reset=True)
+    if args.update_Chronoxia:
+        update_Chronoxia()
     if args.update_reqs:
         install_reqs(audio=True)
     elif args.update_reqs_no_audio:
@@ -570,5 +569,5 @@ if __name__ == '__main__':
     if INTERACTIVE_MODE:
         main()
     elif args.start:
-        print("Starting...")
-        run_chrono(autorestart=args.auto_restart)
+        print("Starting Chronoxia...")
+        run_Chronoxia(autorestart=args.auto_restart)
